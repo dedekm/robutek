@@ -3,6 +3,7 @@ require "savage"
 
 module SvgTool
   class Svg
+    attr_accessor :paths
     def initialize( path )
       @path = path
       file = File.new path
@@ -22,7 +23,7 @@ module SvgTool
         
         path = Savage::Parser.parse path.attributes['d']
         actualPosition = Savage::Directions::Point.new
-        puts path.subpaths
+
         path.subpaths.each do |s|
           s.directions.each do |d|
             ax = actualPosition.x
