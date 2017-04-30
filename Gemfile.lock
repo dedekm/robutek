@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    dino (0.11.2)
+      serialport
+    savage (1.2.0)
+    serialport (1.3.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dino
+  savage
+
+BUNDLED WITH
+   1.14.6
