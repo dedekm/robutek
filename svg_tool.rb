@@ -3,10 +3,10 @@ require "savage"
 
 module SvgTool
   class Svg
-    attr_accessor :paths
-    def initialize( path )
-      @path = path
-      file = File.new path
+    attr_accessor :paths, :doc, :filepath
+    def initialize( filepath )
+      @filepath = filepath
+      file = File.new filepath
       @doc = REXML::Document.new file
       @paths = parse(@doc)
     end
