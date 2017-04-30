@@ -1,4 +1,5 @@
 require 'dino'
+require_relative "bresenham"
 
 class Robutek
   @base
@@ -33,5 +34,7 @@ end
 robutek = Robutek.new 400
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
+
+puts values = Bresenham.cubicBezier(0, 0, 21, 21, 52, 42, 23, 13)
 
 puts 'DONE'
