@@ -80,6 +80,7 @@ class Robutek
         
         @stepperR.step_cc if step[:r] == 1
         @stepperR.step_cw if step[:r] == -1
+        sleep 0.001
       end
     end
     
