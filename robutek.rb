@@ -59,6 +59,16 @@ class Robutek
     end
   end
   
+  def work
+    @steps.each do |step|
+        @stepperL.step_cc if step[:l] == -1
+        @stepperL.step_cw if step[:l] == 1
+        
+        @stepperR.step_cc if step[:r] == 1
+        @stepperR.step_cw if step[:r] == -1
+    end
+  end
+  
   private
   
   def moveTo(x0, y0)
@@ -136,5 +146,6 @@ robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 
 robutek.loadSvg 'test-path.svg'
+robutek.work
 
 puts 'DONE'
