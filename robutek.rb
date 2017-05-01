@@ -33,7 +33,7 @@ class Robutek
   
   def setServo( pin )
     @servo = Dino::Components::Servo.new(pin: pin, board: @board)
-    @servo.position = 0
+    servoSwitch :up
   end
   
   def loadSvg path
@@ -72,16 +72,18 @@ class Robutek
     raise "Servo isn't set up!" if @servo.nil?
     
     @steps.each do |step|
-        if step[:move]
-          servoSwitch
-        else
-          @stepperL.step_cc if step[:l] == -1
-          @stepperL.step_cw if step[:l] == 1
-          
-          @stepperR.step_cc if step[:r] == 1
-          @stepperR.step_cw if step[:r] == -1
-        end
+      if step[:servo]
+        servoSwitch step[:servo]
+      else
+        @stepperL.step_cc if step[:l] == -1
+        @stepperL.step_cw if step[:l] == 1
+        
+        @stepperR.step_cc if step[:r] == 1
+        @stepperR.step_cw if step[:r] == -1
+      end
     end
+    
+    servoSwitch :up
   end
   
   private
@@ -93,9 +95,8 @@ class Robutek
     r1 = leg(@base - x0, y0).round
     
     puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
-    steps = [{ move: true }]
+    steps = [{ servo: :up }]
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
-    steps.push({ move: true })
   end
   
   def lineTo(x0, y0)
@@ -105,8 +106,8 @@ class Robutek
     r1 = leg(@base - x0, y0).round
     
     puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
-    
-    steps = toSteps(Bresenham.line(l0, r0, l1, r1))
+    steps = [{ servo: :down }]
+    steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
   
   def quadBezierTo(x0, y0, x1, y1)
@@ -119,7 +120,8 @@ class Robutek
     
     puts "quad curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1}"
     
-    steps = toSteps(Bresenham.quadBezier(l0, r0, l1, r1, l2, r2))
+    steps = [{ servo: :down }]
+    steps += toSteps(Bresenham.quadBezier(l0, r0, l1, r1, l2, r2))
   end
   
   def cubicBezierTo(x0, y0, x1, y1, x2, y2)
@@ -134,13 +136,14 @@ class Robutek
     
     puts "cubic curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1} > #{x2} #{y2}"
     
-    steps = toSteps(Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3))
+    steps = [{ servo: :down }]
+    steps += toSteps(Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3))
   end
   
-  def servoSwitch
-    if @servo.position == 0 
-      @servo.position = 90
-    else
+  def servoSwitch direction
+    if direction == :up
+      @servo.position = 75
+    elsif direction == :down
       @servo.position = 0
     end
     sleep 0.5
