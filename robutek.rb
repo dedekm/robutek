@@ -26,8 +26,14 @@ class Robutek
   def setLeftStepper( step, dir )
     @stepperL = Dino::Components::Stepper.new(board: @board, pins: { step: step, direction: dir })
   end
+  
   def setRightStepper( step, dir )
     @stepperR = Dino::Components::Stepper.new(board: @board, pins: { step: step, direction: dir })
+  end
+  
+  def setServo( pin )
+    @servo = Dino::Components::Servo.new(pin: pin, board: @board)
+    @servo.position = 0
   end
   
   def loadSvg path
@@ -61,11 +67,15 @@ class Robutek
   
   def work
     @steps.each do |step|
-        @stepperL.step_cc if step[:l] == -1
-        @stepperL.step_cw if step[:l] == 1
-        
-        @stepperR.step_cc if step[:r] == 1
-        @stepperR.step_cw if step[:r] == -1
+        if step[:move]
+          servoSwitch
+        else
+          @stepperL.step_cc if step[:l] == -1
+          @stepperL.step_cw if step[:l] == 1
+          
+          @stepperR.step_cc if step[:r] == 1
+          @stepperR.step_cw if step[:r] == -1
+        end
     end
   end
   
@@ -78,8 +88,9 @@ class Robutek
     r1 = leg(@base - x0, y0).round
     
     puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
-        
-    steps = toSteps(Bresenham.line(l0, r0, l1, r1))
+    steps = [{ move: true }]
+    steps += toSteps(Bresenham.line(l0, r0, l1, r1))
+    steps.push({ move: true })
   end
   
   def lineTo(x0, y0)
@@ -121,6 +132,15 @@ class Robutek
     steps = toSteps(Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3))
   end
   
+  def servoSwitch
+    if @servo.position == 0 
+      @servo.position = 90
+    else
+      @servo.position = 0
+    end
+    sleep 0.5
+  end
+  
   def toSteps(values)
     ax = values.first[:x]
     ay = values.first[:y]
@@ -138,12 +158,12 @@ class Robutek
   def leg(a,b)
     Math.sqrt(a ** 2 + b ** 2)
   end
-
 end
 
 robutek = Robutek.new 400
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
+robutek.setServo 9
 
 robutek.loadSvg 'test-path.svg'
 robutek.work
