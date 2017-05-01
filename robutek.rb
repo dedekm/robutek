@@ -66,6 +66,11 @@ class Robutek
   end
   
   def work
+    raise "Steppers aren't set up!" if @stepperL.nil? && @stepperR.nil?
+    raise "Left stepper isn't set up!" if @stepperL.nil?
+    raise "Right stepper isn't set up!" if @stepperR.nil?
+    raise "Servo isn't set up!" if @servo.nil?
+    
     @steps.each do |step|
         if step[:move]
           servoSwitch
