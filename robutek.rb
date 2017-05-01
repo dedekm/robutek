@@ -3,6 +3,8 @@ require_relative "bresenham"
 require_relative "svg_tool"
 
 class Robutek
+  # WIP 
+  Multiplier = 3.75
   def initialize( base )
     @base = base
     loop do
@@ -165,7 +167,7 @@ class Robutek
   end
   
   def leg(a,b)
-    Math.sqrt(a ** 2 + b ** 2)
+    Math.sqrt((a * Multiplier) ** 2 + (b * Multiplier) ** 2)
   end
 end
 
