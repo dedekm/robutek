@@ -18,7 +18,7 @@ class Robutek
     end
     
     @current = Savage::Directions::Point.new(base/2, 0)
-    @steps = { l: [], r: [] }
+    @steps = []
     
     puts 'Board found and connected!'
   end
@@ -39,24 +39,21 @@ class Robutek
           
           case direction.command_code.capitalize
             when "M"
-              values = moveTo(target.x, target.y)
+              steps = moveTo(target.x, target.y)
             when "L"
-              values = lineTo(target.x, target.y)
+              steps = lineTo(target.x, target.y)
             when "Q"
               control = direction.control
-              values = quadBezierTo(control.x, control.y, target.x, target.y)
+              steps = quadBezierTo(control.x, control.y, target.x, target.y)
             when "C"
               control_1 = direction.control_1
               control_2 = direction.control_2
-              values = cubicBezierTo(control_1.x, control_1.y, control_2.x, control_2.y, target.x, target.y)
+              steps = cubicBezierTo(control_1.x, control_1.y, control_2.x, control_2.y, target.x, target.y)
           end
           
           @current = target.clone
           
-          @steps[:l] += toSteps(values[:x], false)
-          @steps[:r] += toSteps(values[:y], true)
-          
-          puts @steps
+          @steps += steps
         end
       end
     end
@@ -72,7 +69,7 @@ class Robutek
     
     puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
         
-    steps = Bresenham.line(l0, r0, l1, r1)
+    steps = toSteps(Bresenham.line(l0, r0, l1, r1))
   end
   
   def lineTo(x0, y0)
@@ -83,7 +80,7 @@ class Robutek
     
     puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
     
-    steps = Bresenham.line(l0, r0, l1, r1)
+    steps = toSteps(Bresenham.line(l0, r0, l1, r1))
   end
   
   def quadBezierTo(x0, y0, x1, y1)
@@ -96,7 +93,7 @@ class Robutek
     
     puts "quad curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1}"
     
-    steps = Bresenham.quadBezier(l0, r0, l1, r1, l2, r2)
+    steps = toSteps(Bresenham.quadBezier(l0, r0, l1, r1, l2, r2))
   end
   
   def cubicBezierTo(x0, y0, x1, y1, x2, y2)
@@ -111,16 +108,20 @@ class Robutek
     
     puts "cubic curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1} > #{x2} #{y2}"
     
-    steps = Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3)
+    steps = toSteps(Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3))
   end
   
-  def toSteps(values, negate = false)
-    a = values.first
-    
+  def toSteps(values)
+    ax = values.first[:x]
+    ay = values.first[:y]
     values.map do |v| 
-      res = v - a
-      a = v  
-      negate ? -1 * res : res
+      l = v[:x] - ax
+      ax = v[:x]
+      
+      r = v[:y] - ay
+      ay = v[:y]
+      
+      {l: l, r: r}
     end
   end
   

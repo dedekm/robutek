@@ -6,8 +6,7 @@ class Bresenham
     end
     
     def self.line(x0,y0,x1,y1)
-        arrayX = []
-        arrayY = []
+        array = []
         
         dx =  (x1-x0).abs
         sx = x0<x1 ? 1 : -1
@@ -27,23 +26,21 @@ class Bresenham
             if (e2 >= dy)
                 err += dy
                 x0 += sx
-            end     
-            arrayX.push(x0)
+            end
             # y step
             if (e2 <= dx)
                 err += dx
                 y0 += sy
             end
-            arrayY.push(y0)
+            array.push({ x: x0, y: y0 })
         end
-        
-        { x: arrayX, y: arrayY }
+        array
     end
     
     # plot a limited quadratic Bezier segment
     def self.quadBezierSeg(x0, y0, x1, y1, x2, y2)
-        arrayX = []
-        arrayY = []
+        array = []
+        
         ax = x0 - 1
         ay = y0 - 1
       
@@ -96,7 +93,7 @@ class Bresenham
                 # plot curve
                 # puts "x#{x0} y#{y0}"
                 # last pixel -> curve finished
-                return { x: arrayX, y: arrayY } if (x0 == x2 && y0 == y2)
+                return array if (x0 == x2 && y0 == y2)
                 # save value for test of y step
                 y1 = 2*err < dx
                 # x step
@@ -105,27 +102,23 @@ class Bresenham
                     dx -= xy
                     err += dy += yy
                 end
-                arrayX.push(x0)
                 # y step
                 if y1
                     y0 += sy
                     dy -= xy
                     err += dx += xx
                 end
-                arrayY.push(y0)
+                array.push({ x: x0, y: y0 })
             end while (dy < 0 && dx > 0)
         end
         # plot remaining part to end
         rest = self.line(x0,y0, x2,y2)
-        arrayX += rest[:x]
-        arrayY += rest[:y]
-        { x: arrayX, y: arrayY }
+        array += rest
     end
     
     # plot any quadratic Bezier curve
     def self.quadBezier (x0, y0, x1, y1, x2, y2)
-        arrayX = []
-        arrayY = []
+        array = []
       
         x = x0-x1
         y = y0-y1
@@ -155,8 +148,7 @@ class Bresenham
           # intersect P3 | P0 P1
           r = (y1-y0)*(t-x0)/(x1-x0)+y0
           seg = self.quadBezierSeg(x0,y0, x,(r+0.5).floor, x,y)
-          arrayX += seg[:x]
-          arrayY += seg[:y]
+          array += seg
           r = (y1-y2)*(t-x2)/(x1-x2)+y2
           x0 = x1 = x
           y0 = y
@@ -176,8 +168,7 @@ class Bresenham
           # intersect P6 | P0 P1
           r = (x1-x0)*(t-y0)/(y1-y0)+x0
           seg = self.quadBezierSeg(x0, y0, (r+0.5).floor, y, x, y)
-          arrayX += seg[:x]
-          arrayY += seg[:y]
+          array += seg
           # intersect P7 | P1 P2
           r = (x1-x2)*(t-y2)/(y1-y2)+x2
           # P0 = P6, P1 = P7
@@ -187,14 +178,11 @@ class Bresenham
         end
         # remaining part
         seg = self.quadBezierSeg(x0,y0, x1,y1, x2,y2)
-        arrayX += seg[:x]
-        arrayY += seg[:y]
-        { x: arrayX, y: arrayY }
+        array += seg
     end
 
     def self.cubicBezierSeg(x0, y0, x1, y1, x2, y2, x3, y3)
-        arrayX = []
-        arrayY = []
+        array = []
         ax = x0
         ay = y0
         
@@ -300,13 +288,12 @@ class Bresenham
               x0 += sx
               fx += f  
             end
-            arrayX.push(x0)
             # y step
             if (2*fy <= f)              
               y0 += sy
               fy += f  
             end
-            arrayY.push(y0)
+            array.push({ x: x0, y: y0 })
             pxy = 1 if (pxy == 0 && dx < 0 && dy > 0)
           end
         end
@@ -329,18 +316,14 @@ class Bresenham
       end while (leg != 0)
       rest = self.line(x0,y0, x3,y3)
       if(swapped)
-        arrayX += rest[:x]
-        arrayY += rest[:y]
+        array += rest
       else
-        arrayX = rest[:x] + arrayX.reverse
-        arrayY = rest[:y] + arrayY.reverse
+        array = rest + array.reverse
       end
-      { x: arrayX, y: arrayY }
     end
     # plot any cubic Bezier curve
     def self.cubicBezier(x0, y0, x1, y1, x2, y2, x3, y3)
-      arrayX = []
-      arrayY = []
+      array = []
       n = 0
       xc = x0+x1-x2-x3
       xa = xc-4.0*(x1-x2)
@@ -434,8 +417,7 @@ class Bresenham
           # segment t1 - t2
           if (x0 != x3 || y0 != y3)
             seg = self.cubicBezierSeg(x0,y0, x0+fx1,y0+fy1, x0+fx2,y0+fy2, x3,y3)
-            arrayX += seg[:x]
-            arrayY += seg[:y]
+            array += seg
           end
           x0 = x3
           y0 = y3
@@ -443,6 +425,6 @@ class Bresenham
           fy0 = fy3
           t1 = t2
       end
-      { x: arrayX, y: arrayY }
+      array
     end
 end
