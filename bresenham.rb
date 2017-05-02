@@ -32,7 +32,7 @@ class Bresenham
                 err += dx
                 y0 += sy
             end
-            array.push({ x: x0, y: y0 })
+            array.push({x: x0, y: y0})
         end
         array
     end
@@ -108,12 +108,13 @@ class Bresenham
                     dy -= xy
                     err += dx += xx
                 end
-                array.push({ x: x0, y: y0 })
+                array.push({x: x0, y: y0})
             end while (dy < 0 && dx > 0)
         end
         # plot remaining part to end
         rest = self.line(x0,y0, x2,y2)
         array += rest
+        array
     end
     
     # plot any quadratic Bezier curve
@@ -179,6 +180,7 @@ class Bresenham
         # remaining part
         seg = self.quadBezierSeg(x0,y0, x1,y1, x2,y2)
         array += seg
+        array
     end
 
     def self.cubicBezierSeg(x0, y0, x1, y1, x2, y2, x3, y3)
@@ -293,7 +295,7 @@ class Bresenham
               y0 += sy
               fy += f  
             end
-            array.push({ x: x0, y: y0 })
+            array.push({x: x0, y: y0})
             pxy = 1 if (pxy == 0 && dx < 0 && dy > 0)
           end
         end
@@ -310,16 +312,10 @@ class Bresenham
         yb = -yb
         x1 = x2
         
-        swapped = true
-        
         leg-=1
       end while (leg != 0)
       rest = self.line(x0,y0, x3,y3)
-      if(swapped)
-        array += rest
-      else
-        array = rest + array.reverse
-      end
+      array = array + rest
     end
     # plot any cubic Bezier curve
     def self.cubicBezier(x0, y0, x1, y1, x2, y2, x3, y3)
