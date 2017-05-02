@@ -144,12 +144,13 @@ class Robutek
   end
   
   def servoSwitch direction
-    if direction == :up
+    if direction == :up && @servo.position == 0
       @servo.position = 75
-    elsif direction == :down
+      sleep 0.5
+    elsif direction == :down && @servo.position == 75
       @servo.position = 0
+      sleep 0.5
     end
-    sleep 0.5
   end
   
   def toSteps(values)
