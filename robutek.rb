@@ -19,7 +19,7 @@ class Robutek
       break if !e
     end
     
-    @current = Savage::Directions::Point.new(base/2, 0)
+    @current = Savage::Directions::Point.new(base/2, 300)
     @steps = []
     
     puts 'Board found and connected!'
@@ -41,9 +41,13 @@ class Robutek
   def loadSvg path
     @svg = SvgTool::Svg.new path
     @svg.paths.each do |path|
-      path.subpaths.each do |subpath|
+      path[:path].subpaths.each do |subpath|
         subpath.directions.each do |direction|
           target = direction.target
+          
+          path[:matrixes].each do |matrix|
+            target = matrix.transformPoint(target)
+          end
           
           case direction.command_code.capitalize
             when "M"
@@ -52,10 +56,21 @@ class Robutek
               steps = lineTo(target.x, target.y)
             when "Q"
               control = direction.control
+              
+              path[:matrixes].each do |matrix|
+                control = matrix.transformPoint(control)
+              end
+              
               steps = quadBezierTo(control.x, control.y, target.x, target.y)
             when "C"
               control_1 = direction.control_1
               control_2 = direction.control_2
+              
+              path[:matrixes].each do |matrix|
+                control_1 = matrix.transformPoint(control_1)
+                control_2 = matrix.transformPoint(control_2)
+              end
+              
               steps = cubicBezierTo(control_1.x, control_1.y, control_2.x, control_2.y, target.x, target.y)
           end
           
@@ -172,7 +187,7 @@ class Robutek
   end
 end
 
-robutek = Robutek.new 400
+robutek = Robutek.new 750
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9

@@ -2,6 +2,58 @@ require "rexml/document"
 require "savage"
 
 module SvgTool
+  class Matrix
+    def initialize(a, b, c, d, e, f)
+      @a = a.to_f
+      @b = b.to_f
+      @c = c.to_f
+      @d = d.to_f
+      @e = e.to_f
+      @f = f.to_f
+    end
+    
+    def self.fromString(s)
+      type = s.match(/(?:^|(?:[.!?]\s))(\w+)/).to_s
+      values = s.match(/(?<=\().+?(?=\))/).to_s.split(/[\s,]+/).map(&:to_f)
+      
+      case type
+      when 'translate'
+        self.translate(values[0], values[1])
+      when 'scale'
+        self.scale(values[0], values[1])
+      when 'matrix'
+        self.new(values[0], values[1], values[2], values[3], values[4], values[5])
+      end
+    end
+    
+    def self.translate(x,y)
+      self.new(1, 0, 0, 1, x, y)
+    end
+    
+    def self.scale(x,y)
+      self.new(x, 0, 0, y, 0, 0)
+    end
+    
+    def transformPoint(point)
+      point.x = x(point.x,point.y)
+      point.y = y(point.x,point.y)
+      
+      point
+    end
+    
+    def x(x,y)
+      x * @a + y * @c + @e
+    end
+    
+    def y(x,y)
+      x * @b + y * @d + @f
+    end
+    
+    def to_s
+    "matrix #{@a} #{@b} #{@c} #{@d} #{@e} #{@f}"
+    end
+  end
+  
   class Svg
     attr_accessor :paths, :doc, :filepath
     def initialize( filepath )
@@ -17,8 +69,20 @@ module SvgTool
       ungroup(doc)
     end
     
-    def ungroup(element)
+    def ungroup(element, matrixes = [])
       paths = []
+      
+      # element has transform attribute (group)
+      if element.attributes['transform']
+        transform = element.attributes['transform'].split(/\s+(?![^\[]*\]|[^(]*\)|[^\{]*})/)
+        
+        matrixes.push []
+        transform.each do |t|
+          matrixes.last.push Matrix.fromString(t)
+        end
+      end
+
+      # element has drawing commands (path)
       element.elements.each("path") do |path|
         
         path = Savage::Parser.parse path.attributes['d']
@@ -53,12 +117,14 @@ module SvgTool
             end
           end
         end
-        paths.push path
+        paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
       
       element.elements.each do |group|
-          paths += ungroup(group)
+          paths += ungroup(group, matrixes)
       end
+      
+      matrixes.pop
       
       paths
     end
