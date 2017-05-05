@@ -4,7 +4,7 @@ require_relative "svg_tool"
 
 class Robutek
   # WIP 
-  Multiplier = 3.75
+  Multiplier = 40
   def initialize( base )
     @base = base
     loop do
@@ -19,7 +19,8 @@ class Robutek
       break if !e
     end
     
-    @current = Savage::Directions::Point.new(base/2, 300)
+    @current = Savage::Directions::Point.new(@base/2, 350)
+    @start = @current.clone
     @steps = []
     
     puts 'Board found and connected!'
@@ -80,6 +81,7 @@ class Robutek
         end
       end
     end
+    @steps += moveTo(@start.x, @start.y)
   end
   
   def work
@@ -107,10 +109,10 @@ class Robutek
   private
   
   def moveTo(x0, y0)
-    l0 = leg(@current.x, @current.y).round
-    r0 = leg(@base - @current.x, @current.y).round
-    l1 = leg(x0, y0).round
-    r1 = leg(@base - x0, y0).round
+    l0 = leg(@current.x, @current.y)
+    r0 = leg(@base - @current.x, @current.y)
+    l1 = leg(x0, y0)
+    r1 = leg(@base - x0, y0)
     
     puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
     steps = [{ servo: :up }]
@@ -118,10 +120,10 @@ class Robutek
   end
   
   def lineTo(x0, y0)
-    l0 = leg(@current.x, @current.y).round
-    r0 = leg(@base - @current.x, @current.y).round
-    l1 = leg(x0, y0).round
-    r1 = leg(@base - x0, y0).round
+    l0 = leg(@current.x, @current.y)
+    r0 = leg(@base - @current.x, @current.y)
+    l1 = leg(x0, y0)
+    r1 = leg(@base - x0, y0)
     
     puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
     steps = [{ servo: :down }]
@@ -129,12 +131,12 @@ class Robutek
   end
   
   def quadBezierTo(x0, y0, x1, y1)
-    l0 = leg(@current.x, @current.y).round
-    r0 = leg(@base - @current.x, @current.y).round
-    l1 = leg(x0, y0).round
-    r1 = leg(@base - x0, y0).round
-    l2 = leg(x1, y1).round
-    r2 = leg(@base - x1, y1).round
+    l0 = leg(@current.x, @current.y)
+    r0 = leg(@base - @current.x, @current.y)
+    l1 = leg(x0, y0)
+    r1 = leg(@base - x0, y0)
+    l2 = leg(x1, y1)
+    r2 = leg(@base - x1, y1)
     
     puts "quad curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1}"
     
@@ -143,14 +145,14 @@ class Robutek
   end
   
   def cubicBezierTo(x0, y0, x1, y1, x2, y2)
-    l0 = leg(@current.x, @current.y).round
-    r0 = leg(@base - @current.x, @current.y).round
-    l1 = leg(x0, y0).round
-    r1 = leg(@base - x0, y0).round
-    l2 = leg(x1, y1).round
-    r2 = leg(@base - x1, y1).round
-    l3 = leg(x2, y2).round
-    r3 = leg(@base - x2, y2).round
+    l0 = leg(@current.x, @current.y)
+    r0 = leg(@base - @current.x, @current.y)
+    l1 = leg(x0, y0)
+    r1 = leg(@base - x0, y0)
+    l2 = leg(x1, y1)
+    r2 = leg(@base - x1, y1)
+    l3 = leg(x2, y2)
+    r3 = leg(@base - x2, y2)
     
     puts "cubic curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1} > #{x2} #{y2}"
     
@@ -183,7 +185,7 @@ class Robutek
   end
   
   def leg(a,b)
-    Math.sqrt((a * Multiplier) ** 2 + (b * Multiplier) ** 2)
+    ( Math.sqrt( a ** 2 + b ** 2 ) * Multiplier ).round
   end
 end
 
