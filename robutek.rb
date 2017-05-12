@@ -44,7 +44,7 @@ class Robutek
     @svg.paths.each do |path|
       path[:path].subpaths.each do |subpath|
         subpath.directions.each do |direction|
-          target = direction.target
+          target = direction.command_code.capitalize != 'Z' ? direction.target : subpath.directions.first.target
           
           path[:matrixes].each do |matrix|
             target = matrix.transformPoint(target)
@@ -54,6 +54,8 @@ class Robutek
             when "M"
               steps = moveTo(target.x, target.y)
             when "L"
+              steps = lineTo(target.x, target.y)
+            when "Z"
               steps = lineTo(target.x, target.y)
             when "Q"
               control = direction.control
