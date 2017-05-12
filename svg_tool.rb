@@ -55,9 +55,12 @@ module SvgTool
   end
   
   class Svg
-    attr_accessor :paths, :doc, :filepath
+    attr_reader :paths, :doc, :filepath, :size
+    
     def initialize( filepath )
       @filepath = filepath
+      @size = Savage::Directions::Point.new
+      
       file = File.new filepath
       @doc = REXML::Document.new file
       @paths = parse(@doc)
@@ -71,6 +74,14 @@ module SvgTool
     
     def ungroup(element, matrixes = [])
       paths = []
+      
+      # FIXME: convert from other units
+      if element.attributes['width'] && !@size.x
+        @size.x = element.attributes['width'].match(/^\d*/)[0].to_f * 3.543307
+      end
+      if element.attributes['height'] && !@size.y
+        @size.y = element.attributes['height'].match(/^\d*/)[0].to_f * 3.543307
+      end
       
       # element has transform attribute (group)
       if element.attributes['transform']
