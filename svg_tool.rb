@@ -101,7 +101,7 @@ module SvgTool
 
         path.subpaths.each do |s|
           s.directions.each do |d|
-            break if d.command_code.downcase != "z"
+            break if d.command_code.downcase == "z"
             
             if d.absolute?
               actualPosition.x = d.target.x

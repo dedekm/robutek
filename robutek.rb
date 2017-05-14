@@ -51,8 +51,8 @@ class Robutek
         path[:matrixes] = path[:matrixes] + baseMatrix
         
         subpath.directions.each do |direction|
-          target = direction.command_code.capitalize != 'Z' ? direction.target : subpath.directions.first.target
-          
+          target = direction.command_code.capitalize != 'Z' ? direction.target.clone : subpath.directions.first.target.clone
+
           path[:matrixes].each do |matrix|
             target = matrix.transformPoint(target)
           end
@@ -65,7 +65,7 @@ class Robutek
             when "Z"
               steps = lineTo(target.x, target.y)
             when "Q"
-              control = direction.control
+              control = direction.control.clone
               
               path[:matrixes].each do |matrix|
                 control = matrix.transformPoint(control)
@@ -73,8 +73,8 @@ class Robutek
               
               steps = quadBezierTo(control.x, control.y, target.x, target.y)
             when "C"
-              control_1 = direction.control_1
-              control_2 = direction.control_2
+              control_1 = direction.control_1.clone
+              control_2 = direction.control_2.clone
               
               path[:matrixes].each do |matrix|
                 control_1 = matrix.transformPoint(control_1)
@@ -180,6 +180,8 @@ class Robutek
   end
   
   def toSteps(values)
+    return [{l: 0, r: 0}] if values.empty?
+    
     ax = values.first[:x]
     ay = values.first[:y]
     values.map do |v| 
