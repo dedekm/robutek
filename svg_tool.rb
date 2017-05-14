@@ -30,8 +30,8 @@ module SvgTool
       self.new(1, 0, 0, 1, x, y)
     end
     
-    def self.scale(x,y)
-      self.new(x, 0, 0, y, 0, 0)
+    def self.scale(x,y = nil)
+      self.new(x, 0, 0, y || x, 0, 0)
     end
     
     def transformPoint(point)

@@ -4,9 +4,10 @@ require_relative "svg_tool"
 
 class Robutek
   # WIP 
-  Multiplier = 40
-  def initialize( base )
+  MULTIPLIER = 40
+  def initialize( base, margin = 100 )
     @base = base
+    @margin = margin
     loop do
       e = false
       begin
@@ -41,8 +42,14 @@ class Robutek
   
   def loadSvg path
     @svg = SvgTool::Svg.new path
+    
+    baseMatrix = [ SvgTool::Matrix.scale( (@base - @margin * 2) / @svg.size.x ) ]
+    baseMatrix.push SvgTool::Matrix.translate(@margin, @margin)
+    
     @svg.paths.each do |path|
       path[:path].subpaths.each do |subpath|
+        path[:matrixes] = path[:matrixes] + baseMatrix
+        
         subpath.directions.each do |direction|
           target = direction.command_code.capitalize != 'Z' ? direction.target : subpath.directions.first.target
           
@@ -187,7 +194,7 @@ class Robutek
   end
   
   def leg(a,b)
-    ( Math.sqrt( a ** 2 + b ** 2 ) * Multiplier ).round
+    ( Math.sqrt( a ** 2 + b ** 2 ) * MULTIPLIER ).round
   end
 end
 
