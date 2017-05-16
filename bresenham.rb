@@ -204,7 +204,7 @@ class Bresenham
         self.assert((x1-x0)*(x2-x3) < EP && ((x3-x0)*(x1-x2) < EP || xb*xb < xa*xc+EP))
         self.assert((y1-y0)*(y2-y3) < EP && ((y3-y0)*(y1-y2) < EP || yb*yb < ya*yc+EP))
         # quadratic Bezier
-        return self.plotQuadBezierSeg(x0,y0, (3*x1-x0)>>1,(3*y1-y0)>>1, x3,y3) if (xa == 0 && ya == 0)
+        return self.quadBezierSeg(x0,y0, (3*x1-x0).to_i>>1,(3*y1-y0).to_i>>1, x3,y3) if (xa == 0 && ya == 0)
         # line lengths
         x1 = (x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)+1
         x2 = (x2-x3)*(x2-x3)+(y2-y3)*(y2-y3)+1
