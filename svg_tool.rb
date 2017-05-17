@@ -76,11 +76,15 @@ module SvgTool
       paths = []
       
       # FIXME: convert from other units
+      multiplier = 1
+      
       if element.attributes['width'] && !@size.x
-        @size.x = element.attributes['width'].match(/^\d*/)[0].to_f * 3.543307
+        multiplier = 3.543307 if element.attributes['width'].index 'mm'
+        @size.x = element.attributes['width'].match(/^\d*/)[0].to_f * multiplier
       end
       if element.attributes['height'] && !@size.y
-        @size.y = element.attributes['height'].match(/^\d*/)[0].to_f * 3.543307
+        multiplier = 3.543307 if element.attributes['width'].index 'mm'
+        @size.y = element.attributes['height'].match(/^\d*/)[0].to_f * multiplier
       end
       
       # element has transform attribute (group)
