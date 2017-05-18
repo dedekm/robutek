@@ -47,9 +47,9 @@ class Robutek
     baseMatrix.push SvgTool::Matrix.translate(@margin, @margin)
     
     @svg.paths.each do |path|
+      path[:matrixes] = path[:matrixes] + baseMatrix
+      
       path[:path].subpaths.each do |subpath|
-        path[:matrixes] = path[:matrixes] + baseMatrix
-        
         subpath.directions.each do |direction|
           target = direction.command_code.capitalize != 'Z' ? direction.target.clone : subpath.directions.first.target.clone
 
