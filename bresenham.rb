@@ -185,6 +185,8 @@ class Bresenham
 
     def self.cubicBezierSeg(x0, y0, x1, y1, x2, y2, x3, y3)
         array = []
+        swapped = false
+        
         ax = x0
         ay = y0
         
@@ -210,6 +212,8 @@ class Bresenham
         x2 = (x2-x3)*(x2-x3)+(y2-y3)*(y2-y3)+1
         # loop over both ends
         begin
+          a = []
+          
           ab = xa*yb-xb*ya
           ac = xa*yc-xc*ya
           bc = xb*yc-xc*yb
@@ -257,7 +261,6 @@ class Bresenham
           pxy = 0
           fx = fy = f
           while (x0 != x3 && y0 != y3)            
-            # self.setPixel(x0,y0)
             begin
               # confusing values
               throw :exit if (pxy == 0) if (dx > xy || dy < xy)
@@ -295,7 +298,7 @@ class Bresenham
               y0 += sy
               fy += f  
             end
-            array.push({x: x0, y: y0})
+            a.push({x: x0, y: y0})
             pxy = 1 if (pxy == 0 && dx < 0 && dy > 0)
           end
         end
@@ -313,8 +316,14 @@ class Bresenham
         x1 = x2
         
         leg-=1
+        
+        a.reverse! if swapped
+        array += a
+        
+        swapped = true
       end while (leg != 0)
       rest = self.line(x0,y0, x3,y3)
+      
       array = array + rest
     end
     # plot any cubic Bezier curve
