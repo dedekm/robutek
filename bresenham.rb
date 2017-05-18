@@ -347,7 +347,7 @@ class Bresenham
       if (xa == 0)
           # one change
           if (xc.abs < 2*xb.abs)
-            t.push(xc/(2.0*xb)) 
+            t.push(xc/(2.0*xb))
             n+=1
           end
       elsif (t1 > 0.0)
@@ -355,12 +355,12 @@ class Bresenham
           t2 = Math.sqrt(t1)
           t1 = (xb-t2)/xa
           if (t1.abs < 1.0)
-            t.push(t1) 
+            t.push(t1)
             n+=1
           end
           t1 = (xb+t2)/xa
           if (t1.abs < 1.0)
-            t.push(t1) 
+            t.push(t1)
             n+=1
           end
       end
@@ -382,18 +382,20 @@ class Bresenham
           end
           t1 = (yb+t2)/ya
           if (t1.abs < 1.0)
-            t.push(t1) 
+            t.push(t1)
             n+=1
           end
       end
       # bubble sort of 4 points
-      for i in 1...n do
+      i = 0
+      while i < n do
           t1 = t[i-1]
           if (t1 > t[i])
               t[i-1] = t[i]
               t[i] = t1
               i = 0
           end
+          i+=1  
       end
       # begin / end point
       t1 = -1.0
