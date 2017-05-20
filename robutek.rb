@@ -24,6 +24,9 @@ class Robutek
     end
     
     @current = Savage::Directions::Point.new(@base/2, 350)
+    @legL = leg(@current.x, @current.y)
+    @legR = leg(@base - @current.x, @current.y)
+    
     @start = @current.clone
     @steps = []
     
@@ -52,12 +55,14 @@ class Robutek
     
     @upButton.down do
       @up = true
-      puts 'b'
     end
 
     @upButton.up do
       @up = false
       
+      @steps = []
+      @current = legsToPoint(@legL, @legR) 
+      puts "current position = x:#{@current.x} y:#{@current.y}"
     end
   end
   
@@ -146,9 +151,12 @@ class Robutek
     
     @stepperL.step_cc if step[:l] == -1
     @stepperL.step_cw if step[:l] == 1
+    @legL -= step[:l]
     
     @stepperR.step_cc if step[:r] == 1
     @stepperR.step_cw if step[:r] == -1
+    @legR -= step[:r]
+    
     sleep 0.001
   end
   
@@ -167,7 +175,7 @@ class Robutek
     l1 = leg(x0, y0)
     r1 = leg(@base - x0, y0)
     
-    puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
+    # puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
     steps = [{ servo: :up }]
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
@@ -178,8 +186,9 @@ class Robutek
     l1 = leg(x0, y0)
     r1 = leg(@base - x0, y0)
     
-    puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
-    steps = [{ servo: :down }] unless @interactive
+    puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}" unless @interactive
+    steps = []
+    steps << { servo: :down } unless @interactive
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
   
@@ -241,6 +250,15 @@ class Robutek
   
   def leg(a,b)
     ( Math.sqrt( a ** 2 + b ** 2 ) * MULTIPLIER ).round
+  end
+  
+  def legsToPoint(a,b)
+    c = @base * MULTIPLIER
+    p = ( a + b + c ) / 2
+    y = ( 2.0 / c ) * Math.sqrt( p * ( p - a ) * ( p - b ) * ( p - c ))
+    x = Math.sqrt( a ** 2 - y ** 2 )
+    
+    Savage::Directions::Point.new((x / MULTIPLIER ).round, (y / MULTIPLIER ).round)
   end
 end
 
