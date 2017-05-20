@@ -1,8 +1,11 @@
 require 'dino'
+require 'concurrent'
 require_relative "bresenham"
 require_relative "svg_tool"
 
 class Robutek
+  attr_reader :up
+  attr_accessor :steps, :stepperL
   # WIP 
   MULTIPLIER = 40
   def initialize( base, margin = 100 )
@@ -38,6 +41,24 @@ class Robutek
   def setServo( pin )
     @servo = Dino::Components::Servo.new(pin: pin, board: @board)
     servoSwitch :up
+  end
+  
+  def setButtons( pins={} )
+    @interactive = true
+    
+    @up=false
+    
+    @upButton = Dino::Components::Button.new(pin: pins[:up], board: @board)
+    
+    @upButton.down do
+      @up = true
+      puts 'b'
+    end
+
+    @upButton.up do
+      @up = false
+      
+    end
   end
   
   def loadSvg path
@@ -115,6 +136,29 @@ class Robutek
     servoSwitch :up
   end
   
+  def makeStep
+    raise "Steppers aren't set up!" if @stepperL.nil? && @stepperR.nil?
+    raise "Left stepper isn't set up!" if @stepperL.nil?
+    raise "Right stepper isn't set up!" if @stepperR.nil?
+    raise "Servo isn't set up!" if @servo.nil?
+    
+    step = @steps.shift
+    
+    @stepperL.step_cc if step[:l] == -1
+    @stepperL.step_cw if step[:l] == 1
+    
+    @stepperR.step_cc if step[:r] == 1
+    @stepperR.step_cw if step[:r] == -1
+    sleep 0.001
+  end
+  
+  def relativeLineTo(x, y)
+    @steps += lineTo(@current.x + x, @current.y + y)
+    
+    @current.x += x
+    @current.y += y
+  end
+  
   private
   
   def moveTo(x0, y0)
@@ -135,7 +179,7 @@ class Robutek
     r1 = leg(@base - x0, y0)
     
     puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
-    steps = [{ servo: :down }]
+    steps = [{ servo: :down }] unless @interactive
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
   
@@ -205,7 +249,16 @@ robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
 
-robutek.loadSvg 'test-path.svg'
-robutek.work
+robutek.setButtons up: 13
 
-puts 'DONE'
+loop do
+  x= 0
+  y=0
+  if robutek.up
+    x += 1
+    robutek.relativeLineTo(x, y)
+  end
+  if robutek.steps.count > 0
+    robutek.makeStep
+  end
+end
