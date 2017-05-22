@@ -205,7 +205,10 @@ robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
 
+time = Time.now
+
 robutek.loadSvg 'test-path.svg'
 robutek.work
 
-puts 'DONE'
+time = Time.at(Time.now - time)
+puts time.strftime "DONE in %M min %S sec" 
