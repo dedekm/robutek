@@ -18,7 +18,7 @@ module Dino
 end
 
 class Robutek
-  attr_reader :up
+  attr_reader :up, :buttons
   attr_accessor :steps, :stepperL
   # WIP 
   MULTIPLIER = 40
@@ -36,6 +36,8 @@ class Robutek
       end
       break if !e
     end
+    
+    @buttons={}
     
     @current = Savage::Directions::Point.new(@base/2, 350)
     @legL = leg(@current.x, @current.y)
@@ -63,21 +65,20 @@ class Robutek
   def setButtons( pins={} )
     @interactive = true
     
-    @up=false
-    
-    @upButton = Dino::Components::Button.new(pin: pins[:up], board: @board)
-    
-    @upButton.down do
-      @up = true
-    end
-
-    @upButton.up do
-      @up = false
+    pins.each_key do |key|
+      button = Dino::Components::Button.new(pin: pins[key], board: @board)
       
-      @steps = []
-      @current = legsToPoint(@legL, @legR) 
-      puts "current position = x:#{@current.x} y:#{@current.y}"
-    end
+      @buttons[key] = false
+      
+      button.down do
+        @buttons[key] = true
+      end
+      
+      button.up do
+        @buttons[key] = false
+        resetPosition
+      end
+    end    
   end
   
   def loadSvg path
@@ -183,6 +184,12 @@ class Robutek
   
   private
   
+  def resetPosition
+    @steps = []
+    @current = legsToPoint(@legL, @legR) 
+    puts "current position = x:#{@current.x} y:#{@current.y}"
+  end
+  
   def moveTo(x0, y0)
     l0 = leg(@current.x, @current.y)
     r0 = leg(@base - @current.x, @current.y)
@@ -277,20 +284,32 @@ class Robutek
 end
 
 robutek = Robutek.new 750
-robutek.setLeftStepper 12, 10
-robutek.setRightStepper 4, 2
+robutek.setLeftStepper 12, 11
+robutek.setRightStepper 10, 9
 robutek.setServo 9
 
-robutek.setButtons up: 13
+robutek.setButtons up: 7, down: 6, left: 5, right: 4
 
 loop do
-  x= 0
-  y=0
-  if robutek.up
-    x += 1
-    robutek.relativeLineTo(x, y)
-  end
+  x = 0
+  y = 0
+  
   if robutek.steps.count > 0
     robutek.makeStep
+  else
+    if robutek.buttons[:up]
+      y += 1
+    end
+    if robutek.buttons[:down]
+      y -= 1
+    end
+    if robutek.buttons[:left]
+      x -= 1
+    end
+    if robutek.buttons[:right]
+      x += 1
+    end
+    
+    robutek.relativeLineTo(x, y)
   end
 end
