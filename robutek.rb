@@ -3,6 +3,20 @@ require 'concurrent'
 require_relative "bresenham"
 require_relative "svg_tool"
 
+module Dino
+  module Components
+    class Button < BaseComponent
+      def after_initialize(options={})
+        @down_callbacks, @up_callbacks, @state = [], [], UP
+        
+        self.board.add_digital_hardware(self)
+        self.board.set_pin_mode(self.pin, :in, true)
+        self.board.start_read
+      end
+    end
+  end
+end
+
 class Robutek
   attr_reader :up
   attr_accessor :steps, :stepperL
