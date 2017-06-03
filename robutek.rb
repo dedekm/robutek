@@ -20,7 +20,7 @@ class Robutek
       break if !e
     end
     
-    @current = Savage::Directions::Point.new(@base/2, 350)
+    @current = Savage::Directions::Point.new(@base/2, 240)
     @start = @current.clone
     @steps = []
     
@@ -200,7 +200,7 @@ class Robutek
   end
 end
 
-robutek = Robutek.new 750
+robutek = Robutek.new 1126, 250
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
