@@ -5,9 +5,10 @@ require_relative "svg_tool"
 class Robutek
   # WIP 
   MULTIPLIER = 40
-  def initialize( base, margin = 100 )
+  def initialize( base, margin = 100, marginY = nil )
     @base = base
-    @margin = margin
+    @margin = Savage::Directions::Point.new(margin, marginY || margin)
+    
     loop do
       e = false
       begin
@@ -43,8 +44,8 @@ class Robutek
   def loadSvg path
     @svg = SvgTool::Svg.new path
     
-    baseMatrix = [ SvgTool::Matrix.scale( (@base - @margin * 2) / @svg.size.x ) ]
-    baseMatrix.push SvgTool::Matrix.translate(@margin, @margin)
+    baseMatrix = [ SvgTool::Matrix.scale( (@base - @margin.x * 2) / @svg.size.x ) ]
+    baseMatrix.push SvgTool::Matrix.translate(@margin.x, @margin.y)
     
     @svg.paths.each do |path|
       path[:matrixes] = path[:matrixes] + baseMatrix
@@ -200,7 +201,7 @@ class Robutek
   end
 end
 
-robutek = Robutek.new 1126, 250
+robutek = Robutek.new 1126, 250, 240
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
