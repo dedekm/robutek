@@ -3,22 +3,22 @@ require_relative "bresenham"
 require_relative "svg_tool"
 
 class Robutek
-  # WIP 
+  # WIP
   MULTIPLIER = 40
   def initialize( base, margin = 100, marginY = nil )
     @base = base
     @margin = Savage::Directions::Point.new(margin, marginY || margin)
     
     loop do
-      e = false
       begin
           @board = Dino::Board.new(Dino::TxRx::Serial.new)
-      rescue Dino::BoardNotFound => e
+      rescue Dino::BoardNotFound
           puts 'No board found!'
           puts '...'
           sleep 0.5
+          retry
       end
-      break if !e
+      break if @board
     end
     
     @current = Savage::Directions::Point.new(@base/2, 240)
@@ -185,7 +185,7 @@ class Robutek
     
     ax = values.first[:x]
     ay = values.first[:y]
-    values.map do |v| 
+    values.map do |v|
       l = v[:x] - ax
       ax = v[:x]
       
@@ -212,4 +212,4 @@ robutek.loadSvg 'test-path.svg'
 robutek.work
 
 time = Time.at(Time.now - time)
-puts time.strftime "DONE in %M min %S sec" 
+puts time.strftime "DONE in %M min %S sec"
