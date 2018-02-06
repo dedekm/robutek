@@ -75,16 +75,11 @@ module SvgTool
     def ungroup(element, matrixes = [])
       paths = []
       
-      # FIXME: convert from other units
-      multiplier = 1
-      
-      if element.attributes['width'] && !@size.x
-        multiplier = 3.543307 if element.attributes['width'].index 'mm'
-        @size.x = element.attributes['width'].match(/^\d*/)[0].to_f * multiplier
-      end
-      if element.attributes['height'] && !@size.y
-        multiplier = 3.543307 if element.attributes['width'].index 'mm'
-        @size.y = element.attributes['height'].match(/^\d*/)[0].to_f * multiplier
+      viewbox = element.attributes['viewBox']
+      if viewbox
+        viewbox = viewbox.split(' ')
+        @size.x = viewbox[2].to_f - viewbox[0].to_f
+        @size.y = viewbox[3].to_f - viewbox[1].to_f
       end
       
       # element has transform attribute (group)
