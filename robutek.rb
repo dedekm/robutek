@@ -214,7 +214,8 @@ robutek.setServo 9
 
 time = Time.now
 
-robutek.loadSvg 'test-path.svg'
+filename = ARGV.first || 'test-path.svg'
+robutek.loadSvg filename
 puts 'done'
 robutek.work
 
