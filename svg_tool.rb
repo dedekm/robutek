@@ -91,6 +91,16 @@ module SvgTool
           matrixes.last.push Matrix.fromString(t)
         end
       end
+      
+      # element has drawing commands (line)
+      element.elements.each("line") do |line|
+        path = Savage::Path.new do |p|
+          p.move_to line.attributes['x1'].to_f, line.attributes['y1'].to_f
+          p.line_to line.attributes['x2'].to_f, line.attributes['y2'].to_f
+        end
+
+        paths.push({path: path, matrixes: matrixes.clone.flatten})
+      end
 
       # element has drawing commands (path)
       element.elements.each("path") do |path|
