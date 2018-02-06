@@ -101,6 +101,23 @@ module SvgTool
 
         paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
+      
+      # element has drawing commands (rect)
+      element.elements.each("rect") do |rect|
+        x = rect.attributes['x'].to_f
+        y = rect.attributes['y'].to_f
+        w = rect.attributes['width'].to_f
+        h = rect.attributes['height'].to_f
+        path = Savage::Path.new do |p|
+          p.move_to x, y
+          p.line_to x + w, y
+          p.line_to x + w, y + h
+          p.line_to x, y + h
+          p.close_path
+        end
+        
+        paths.push({path: path, matrixes: matrixes.clone.flatten})
+      end
 
       # element has drawing commands (path)
       element.elements.each("path") do |path|
