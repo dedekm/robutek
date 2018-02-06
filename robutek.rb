@@ -124,7 +124,9 @@ class Robutek
     l1 = leg(x0, y0)
     r1 = leg(@base - x0, y0)
     
-    puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
+    # puts "move #{@current.x}, #{@current.y} > #{x0} #{y0}"
+    print '.'
+    
     steps = [{ servo: :up }]
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
@@ -135,7 +137,9 @@ class Robutek
     l1 = leg(x0, y0)
     r1 = leg(@base - x0, y0)
     
-    puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
+    # puts "line #{@current.x}, #{@current.y} > #{x0} #{y0}"
+    print '.'
+    
     steps = [{ servo: :down }]
     steps += toSteps(Bresenham.line(l0, r0, l1, r1))
   end
@@ -148,7 +152,8 @@ class Robutek
     l2 = leg(x1, y1)
     r2 = leg(@base - x1, y1)
     
-    puts "quad curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1}"
+    # puts "quad curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1}"
+    print '.'
     
     steps = [{ servo: :down }]
     steps += toSteps(Bresenham.quadBezier(l0, r0, l1, r1, l2, r2))
@@ -164,7 +169,8 @@ class Robutek
     l3 = leg(x2, y2)
     r3 = leg(@base - x2, y2)
     
-    puts "cubic curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1} > #{x2} #{y2}"
+    # puts "cubic curve #{@current.x}, #{@current.y} > #{x0} #{y0} > #{x1} #{y1} > #{x2} #{y2}"
+    print '.'
     
     steps = [{ servo: :down }]
     steps += toSteps(Bresenham.cubicBezier(l0, r0, l1, r1, l2, r2, l3, r3))
@@ -209,6 +215,7 @@ robutek.setServo 9
 time = Time.now
 
 robutek.loadSvg 'test-path.svg'
+puts 'done'
 robutek.work
 
 time = Time.at(Time.now - time)
