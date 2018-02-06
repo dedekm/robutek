@@ -4,7 +4,7 @@ require_relative "svg_tool"
 
 class Robutek
   # WIP
-  MULTIPLIER = 40
+  MULTIPLIER = 10
   def initialize( base, margin = 100, marginY = nil )
     @base = base
     @margin = Savage::Directions::Point.new(margin, marginY || margin)
