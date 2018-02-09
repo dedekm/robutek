@@ -157,8 +157,19 @@ module SvgTool
         actualPosition = Savage::Directions::Point.new
 
         path.subpaths.each do |s|
-          s.directions.each do |d|
+          s.directions.each_with_index do |d, i|
             break if d.command_code.downcase == "z"
+                        
+            if d.command_code.downcase == "h"
+              x = d.target
+              x += actualPosition.x unless d.absolute?
+              d = s.directions[i] = Savage::Directions::LineTo.new(x, actualPosition.y)
+            elsif d.command_code.downcase == "v"
+              y = d.target
+              y += actualPosition.y unless d.absolute?
+              d = s.directions[i] = Savage::Directions::LineTo.new(actualPosition.x, y)
+            end
+            
             
             if d.absolute?
               actualPosition.x = d.target.x
@@ -175,6 +186,21 @@ module SvgTool
               if d.command_code.downcase == "c"
                 d.control_1.x += actualPosition.x
                 d.control_1.y += actualPosition.y
+              end
+              
+              if d.command_code.downcase == "s"
+                previous_d = s.directions[i - 1]
+                if previous_d && previous_d.respond_to?(:control_2)
+                  d.control_1 = Savage::Directions::Point.new(
+                    2 * actualPosition.x - previous_d.control_2.x,
+                    2 * actualPosition.y - previous_d.control_2.y
+                  )
+                else
+                  d.control_1 = actualPosition.clone
+                end
+              end
+              
+              if d.command_code.downcase == "c" || d.command_code.downcase == "s"
                 d.control_2.x += actualPosition.x
                 d.control_2.y += actualPosition.y
               end
