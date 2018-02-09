@@ -2,6 +2,21 @@ require 'dino'
 require_relative "bresenham"
 require_relative "svg_tool"
 
+require 'yaml'
+# defaults
+config = {
+  'base' => 1000,
+  'margin' => {
+    'x' => 250,
+    'y' => 250
+  }
+}
+if File.exist?('config.yml')
+  config.merge! YAML::load_file('config.yml')
+else
+  warn "Warning: 'config.yml' not found!"
+end
+
 class Robutek
   # WIP
   MULTIPLIER = 10
@@ -207,7 +222,7 @@ class Robutek
   end
 end
 
-robutek = Robutek.new 1126, 250, 240
+robutek = Robutek.new config['base'], config['margin']['x'], config['margin']['y']
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
