@@ -118,6 +118,37 @@ module SvgTool
         
         paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
+      
+      # element has drawing commands (polyline)
+      element.elements.each("polyline") do |pl|
+        points = pl.attributes['points'].split(' ')
+        path = Savage::Path.new do |p|
+          point = points.shift.split(',')
+          p.move_to point[0].to_f, point[1].to_f
+          points.each do |point|
+            point = point.split(',')
+            p.line_to point[0].to_f, point[1].to_f
+          end
+        end
+
+        paths.push({path: path, matrixes: matrixes.clone.flatten})
+      end
+      
+      # element has drawing commands (polygon)
+      element.elements.each("polygon") do |pl|
+        points = pl.attributes['points'].split(' ')
+        path = Savage::Path.new do |p|
+          point = points.shift.split(',')
+          p.move_to point[0].to_f, point[1].to_f
+          points.each do |point|
+            point = point.split(',')
+            p.line_to point[0].to_f, point[1].to_f
+          end
+          p.close_path
+        end
+
+        paths.push({path: path, matrixes: matrixes.clone.flatten})
+      end
 
       # element has drawing commands (path)
       element.elements.each("path") do |path|
