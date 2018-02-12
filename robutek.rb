@@ -6,9 +6,17 @@ require 'yaml'
 # defaults
 config = {
   'base' => 1000,
+  'multiplier' => 10,
+  'start' => {
+    'y' => 250
+  },
   'margin' => {
     'x' => 250,
     'y' => 250
+  },
+  'servo' => {
+    'min' => 75,
+    'max' => 0
   }
 }
 if File.exist?('config.yml')
@@ -19,10 +27,13 @@ end
 
 class Robutek
   # WIP
-  MULTIPLIER = 10
-  def initialize( base, margin = 100, marginY = nil )
-    @base = base
-    @margin = Savage::Directions::Point.new(margin, marginY || margin)
+  def initialize(opts = {})
+    # FIXME: add warnings for missing opts
+    @multiplier = opts[:multiplier] || 10
+    @base = opts[:base]
+    @margin = Savage::Directions::Point.new(opts[:margin][:x], opts[:margin][:y] || opts[:margin][:x])
+    @servo_min = opts[:servo][:min]
+    @servo_max = opts[:servo][:max]
     
     loop do
       begin
@@ -36,7 +47,7 @@ class Robutek
       break if @board
     end
     
-    @current = Savage::Directions::Point.new(@base/2, 240)
+    @current = Savage::Directions::Point.new(opts[:start][:x] || @base/2, opts[:start][:y] || 250)
     @start = @current.clone
     @steps = []
     
@@ -193,10 +204,10 @@ class Robutek
   
   def servoSwitch direction
     if direction == :up && @servo.position == 0
-      @servo.position = 75
+      @servo.position = @servo_max
       sleep 0.5
     elsif direction == :down && @servo.position == 75
-      @servo.position = 0
+      @servo.position = @servo_min
       sleep 0.5
     end
   end
@@ -218,11 +229,26 @@ class Robutek
   end
   
   def leg(a,b)
-    ( Math.sqrt( a ** 2 + b ** 2 ) * MULTIPLIER ).round
+    ( Math.sqrt( a ** 2 + b ** 2 ) * @multiplier ).round
   end
 end
 
-robutek = Robutek.new config['base'], config['margin']['x'], config['margin']['y']
+robutek = Robutek.new(
+  base: config['base'],
+  multiplier: config['multiplier'],
+  margin: {
+    x: config['margin']['x'],
+    y: config['margin']['y']
+  },
+  start: {
+    y: config['start']['y']
+  },
+  servo: {
+    min: config['servo']['min'],
+    max: config['servo']['max']
+  }
+)
+  
 robutek.setLeftStepper 12, 10
 robutek.setRightStepper 4, 2
 robutek.setServo 9
@@ -230,9 +256,11 @@ robutek.setServo 9
 time = Time.now
 
 filename = ARGV.first || 'test-path.svg'
+print 'Preparing data'
 robutek.loadSvg filename
 puts 'done'
+puts 'Drawing'
 robutek.work
 
 time = Time.at(Time.now - time)
-puts time.strftime "DONE in %M min %S sec"
+puts time.strftime "Finished in %M min %S sec"
