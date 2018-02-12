@@ -67,159 +67,138 @@ module SvgTool
     end
     
     private
-    
-    def parse( doc )
-      ungroup(doc)
-    end
-    
-    def ungroup(element, matrixes = [])
-      paths = []
-      
-      viewbox = element.attributes['viewBox']
-      if viewbox
-        viewbox = viewbox.split(' ')
-        @size.x = viewbox[2].to_f - viewbox[0].to_f
-        @size.y = viewbox[3].to_f - viewbox[1].to_f
+      def parse( doc )
+        ungroup(doc)
       end
       
-      # element has transform attribute (group)
-      if element.attributes['transform']
-        transform = element.attributes['transform'].split(/\s+(?![^\[]*\]|[^(]*\)|[^\{]*})/)
-        
-        matrixes.push []
-        transform.each do |t|
-          matrixes.last.push Matrix.fromString(t)
-        end
-      end
-      
-      # element has drawing commands (line)
-      element.elements.each("line") do |line|
-        path = Savage::Path.new do |p|
+      def line_to_path(line)
+        Savage::Path.new do |p|
           p.move_to line.attributes['x1'].to_f, line.attributes['y1'].to_f
           p.line_to line.attributes['x2'].to_f, line.attributes['y2'].to_f
         end
-
-        paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
       
-      # element has drawing commands (rect)
-      element.elements.each("rect") do |rect|
+      def rect_to_path(rect)
         x = rect.attributes['x'].to_f
         y = rect.attributes['y'].to_f
         w = rect.attributes['width'].to_f
         h = rect.attributes['height'].to_f
-        path = Savage::Path.new do |p|
+        Savage::Path.new do |p|
           p.move_to x, y
           p.line_to x + w, y
           p.line_to x + w, y + h
           p.line_to x, y + h
           p.close_path
         end
-        
-        paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
       
-      # element has drawing commands (polyline)
-      element.elements.each("polyline") do |pl|
-        points = pl.attributes['points'].split(' ')
-        path = Savage::Path.new do |p|
+      def poly_to_path(poly)
+        points = poly.attributes['points'].split(' ')
+        Savage::Path.new do |p|
           point = points.shift.split(',')
           p.move_to point[0].to_f, point[1].to_f
           points.each do |point|
             point = point.split(',')
             p.line_to point[0].to_f, point[1].to_f
           end
+          p.close_path if poly.name == 'polygon'
         end
-
-        paths.push({path: path, matrixes: matrixes.clone.flatten})
       end
       
-      # element has drawing commands (polygon)
-      element.elements.each("polygon") do |pl|
-        points = pl.attributes['points'].split(' ')
-        path = Savage::Path.new do |p|
-          point = points.shift.split(',')
-          p.move_to point[0].to_f, point[1].to_f
-          points.each do |point|
-            point = point.split(',')
-            p.line_to point[0].to_f, point[1].to_f
-          end
-          p.close_path
-        end
-
-        paths.push({path: path, matrixes: matrixes.clone.flatten})
-      end
-
-      # element has drawing commands (path)
-      element.elements.each("path") do |path|
+      def ungroup(element, matrixes = [])
+        paths = []
         
-        path = Savage::Parser.parse path.attributes['d']
-        actualPosition = Savage::Directions::Point.new
+        viewbox = element.attributes['viewBox']
+        if viewbox
+          viewbox = viewbox.split(' ')
+          @size.x = viewbox[2].to_f - viewbox[0].to_f
+          @size.y = viewbox[3].to_f - viewbox[1].to_f
+        end
+        
+        # element has transform attribute (group)
+        if element.attributes['transform']
+          transform = element.attributes['transform'].split(/\s+(?![^\[]*\]|[^(]*\)|[^\{]*})/)
+          
+          matrixes.push []
+          transform.each do |t|
+            matrixes.last.push Matrix.fromString(t)
+          end
+        end
+        
+        path = nil
+        case element.name
+        when 'line'
+          path = line_to_path(element)
+        when 'rect'
+          path = rect_to_path(element)
+        when 'polyline'
+          path = poly_to_path(element)
+        when 'polygon'
+          path = poly_to_path(element)
+        when 'path'
+          path = Savage::Parser.parse element.attributes['d']
+          actualPosition = Savage::Directions::Point.new
 
-        path.subpaths.each do |s|
-          s.directions.each_with_index do |d, i|
-            break if d.command_code.downcase == "z"
-                        
-            if d.command_code.downcase == "h"
-              x = d.target
-              x += actualPosition.x unless d.absolute?
-              d = s.directions[i] = Savage::Directions::LineTo.new(x, actualPosition.y)
-            elsif d.command_code.downcase == "v"
-              y = d.target
-              y += actualPosition.y unless d.absolute?
-              d = s.directions[i] = Savage::Directions::LineTo.new(actualPosition.x, y)
-            end
-            
-            
-            if d.absolute?
-              actualPosition.x = d.target.x
-              actualPosition.y = d.target.y
-            else
-              d.target.x += actualPosition.x
-              d.target.y += actualPosition.y
-              
-              if d.command_code.downcase == "q"
-                d.control.x += actualPosition.x
-                d.control.y += actualPosition.y
+          path.subpaths.each do |s|
+            s.directions.each_with_index do |d, i|
+              break if d.command_code.downcase == "z"
+                          
+              if d.command_code.downcase == "h"
+                x = d.target
+                x += actualPosition.x unless d.absolute?
+                d = s.directions[i] = Savage::Directions::LineTo.new(x, actualPosition.y)
+              elsif d.command_code.downcase == "v"
+                y = d.target
+                y += actualPosition.y unless d.absolute?
+                d = s.directions[i] = Savage::Directions::LineTo.new(actualPosition.x, y)
               end
               
-              if d.command_code.downcase == "c"
-                d.control_1.x += actualPosition.x
-                d.control_1.y += actualPosition.y
-              end
-              
-              if d.command_code.downcase == "s"
-                previous_d = s.directions[i - 1]
-                if previous_d && previous_d.respond_to?(:control_2)
-                  d.control_1 = Savage::Directions::Point.new(
-                    2 * actualPosition.x - previous_d.control_2.x,
-                    2 * actualPosition.y - previous_d.control_2.y
-                  )
-                else
-                  d.control_1 = actualPosition.clone
+              unless d.absolute?
+                d.target.x += actualPosition.x
+                d.target.y += actualPosition.y
+                
+                if d.command_code.downcase == "q"
+                  d.control.x += actualPosition.x
+                  d.control.y += actualPosition.y
+                end
+                
+                if d.command_code.downcase == "c"
+                  d.control_1.x += actualPosition.x
+                  d.control_1.y += actualPosition.y
+                end
+                
+                if d.command_code.downcase == "s"
+                  previous_d = s.directions[i - 1]
+                  if previous_d && previous_d.respond_to?(:control_2)
+                    d.control_1 = Savage::Directions::Point.new(
+                      2 * actualPosition.x - previous_d.control_2.x,
+                      2 * actualPosition.y - previous_d.control_2.y
+                    )
+                  else
+                    d.control_1 = actualPosition.clone
+                  end
+                end
+                
+                if d.command_code.downcase == "c" || d.command_code.downcase == "s"
+                  d.control_2.x += actualPosition.x
+                  d.control_2.y += actualPosition.y
                 end
               end
-              
-              if d.command_code.downcase == "c" || d.command_code.downcase == "s"
-                d.control_2.x += actualPosition.x
-                d.control_2.y += actualPosition.y
-              end
-              
+
               actualPosition.x = d.target.x
               actualPosition.y = d.target.y
             end
           end
         end
-        paths.push({path: path, matrixes: matrixes.clone.flatten})
-      end
-      
-      element.elements.each do |group|
+        paths.push({path: path, matrixes: matrixes.clone.flatten}) if path
+        
+        element.elements.each do |group|
           paths += ungroup(group, matrixes)
+        end
+        
+        matrixes.pop
+        
+        paths
       end
-      
-      matrixes.pop
-      
-      paths
     end
-  end
 end
